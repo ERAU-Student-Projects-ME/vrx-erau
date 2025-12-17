@@ -261,20 +261,26 @@ class Model:
         if not self.urdf:
             self.urdf = os.path.join(get_package_share_directory('wamv_gazebo'),
                                      'urdf', 'wamv_gazebo.urdf.xacro')
-        command = self.xacro_cmd()
-        process = subprocess.Popen(command,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
 
-        # evaluate error output for the xacro process
-        stderr = process.communicate()[1]
-        err_output = codecs.getdecoder('unicode_escape')(stderr)[0]
-        for line in err_output.splitlines():
-            if line.find('undefined local') > 0:
-                raise RuntimeError(line)
+        if '.sdf' not in self.urdf:
+            command = self.xacro_cmd()
+            process = subprocess.Popen(command,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
 
-        stdout = process.communicate()[0]
-        model_sdf = codecs.getdecoder('unicode_escape')(stdout)[0]
+            # evaluate error output for the xacro process
+            stderr = process.communicate()[1]
+            err_output = codecs.getdecoder('unicode_escape')(stderr)[0]
+            for line in err_output.splitlines():
+                if line.find('undefined local') > 0:
+                    raise RuntimeError(line)
+
+            stdout = process.communicate()[0]
+            model_sdf = codecs.getdecoder('unicode_escape')(stdout)[0]
+        else:
+            # read sdf file directly
+            with open(self.urdf, 'r') as f:
+                model_sdf = f.read()
 
         # parse sdf for payloads if model is urdf
         if self.urdf != '':
@@ -285,7 +291,7 @@ class Model:
         #     f.write(model_sdf)
         # print(command)
 
-        return command, model_sdf
+        return model_sdf
 
     def name_from_plugin(self, plugin_sdf):
         result = re.search(r"/*<name>(.*)<\/name>", plugin_sdf)
@@ -317,7 +323,7 @@ class Model:
 
     def spawn_args(self, model_sdf=None):
         if not model_sdf:
-            [command, model_sdf] = self.generate()
+            model_sdf = self.generate()
 
         return ['-string', model_sdf,
                 '-name', self.model_name,
