@@ -262,25 +262,25 @@ class Model:
             self.urdf = os.path.join(get_package_share_directory('wamv_gazebo'),
                                      'urdf', 'wamv_gazebo.urdf.xacro')
 
-        if '.sdf' not in self.urdf:
-            command = self.xacro_cmd()
-            process = subprocess.Popen(command,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
+        # if '.sdf' not in self.urdf:
+        command = self.xacro_cmd()
+        process = subprocess.Popen(command,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
 
-            # evaluate error output for the xacro process
-            stderr = process.communicate()[1]
-            err_output = codecs.getdecoder('unicode_escape')(stderr)[0]
-            for line in err_output.splitlines():
-                if line.find('undefined local') > 0:
-                    raise RuntimeError(line)
+        # evaluate error output for the xacro process
+        stderr = process.communicate()[1]
+        err_output = codecs.getdecoder('unicode_escape')(stderr)[0]
+        for line in err_output.splitlines():
+            if line.find('undefined local') > 0:
+                raise RuntimeError(line)
 
-            stdout = process.communicate()[0]
-            model_sdf = codecs.getdecoder('unicode_escape')(stdout)[0]
-        else:
-            # read sdf file directly
-            with open(self.urdf, 'r') as f:
-                model_sdf = f.read()
+        stdout = process.communicate()[0]
+        model_sdf = codecs.getdecoder('unicode_escape')(stdout)[0]
+        # else:
+        #     # read sdf file directly
+        #     with open(self.urdf, 'r') as f:
+        #         model_sdf = f.read()
 
         # parse sdf for payloads if model is urdf
         if self.urdf != '':
