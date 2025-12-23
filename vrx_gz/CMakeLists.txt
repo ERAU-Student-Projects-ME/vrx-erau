@@ -146,6 +146,7 @@ list(APPEND VRX_GZ_PLUGINS
   AcousticPingerPlugin
   BallShooterPlugin
   LightBuoyPlugin
+  LightPlugin
   NavigationScoringPlugin
   GymkhanaScoringPlugin
   PerceptionScoringPlugin

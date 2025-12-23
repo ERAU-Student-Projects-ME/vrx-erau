@@ -93,7 +93,7 @@ joy_teleop:
       deadman_buttons: [4]
       axis_mappings:
         data:
-          axis: 1
+          axis: 3
           scale: 50.0
           offset: 0
           
@@ -101,20 +101,20 @@ joy_teleop:
       type: topic
       interface_type: std_msgs/msg/Float64
       topic_name: /wamv/thrusters/left/pos
-      deadman_buttons: [5]
+      deadman_buttons: [4]
       axis_mappings:
         data:
-          axis: 2
-          scale: -3.1415926535897931
+          axis: 0
+          scale: -1.570796327
           offset: 0
 
     right_pos:
       type: topic
       interface_type: std_msgs/msg/Float64
       topic_name: /wamv/thrusters/right/pos
-      deadman_buttons: [5]
+      deadman_buttons: [4]
       axis_mappings:
         data:
           axis: 2
-          scale: -3.1415926535897931
+          scale: -1.570796327
           offset: 0
