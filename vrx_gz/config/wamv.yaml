@@ -105,7 +105,7 @@ joy_teleop:
       axis_mappings:
         data:
           axis: 0
-          scale: -1.0
+          scale: -1.570796327
           offset: 0
 
     right_pos:
@@ -116,7 +116,7 @@ joy_teleop:
       axis_mappings:
         data:
           axis: 2
-          scale: -1.0
+          scale: -1.570796327
           offset: 0
 
     ball_shooter:
