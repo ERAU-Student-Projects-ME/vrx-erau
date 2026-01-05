@@ -46,7 +46,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'vehicle',
             default_value='minion',
-            description='Vehicle type'
+            description='Vehicle name'
         ),
         DeclareLaunchArgument(
             'cmd_vel',

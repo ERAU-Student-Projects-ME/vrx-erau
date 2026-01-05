@@ -5,3 +5,4 @@ prepend-non-duplicate;GZ_SIM_RESOURCE_PATH;@CMAKE_INSTALL_PREFIX@/share/@PROJECT
 prepend-non-duplicate;GZ_SIM_SYSTEM_PLUGIN_PATH;@CMAKE_INSTALL_PREFIX@/lib
 
 prepend-non-duplicate;LD_LIBRARY_PATH;@CMAKE_INSTALL_PREFIX@/lib
+prepend-non-duplicate;PATH;@CMAKE_INSTALL_PREFIX@/../src/vrx-erau/@PROJECT_NAME@/launch
