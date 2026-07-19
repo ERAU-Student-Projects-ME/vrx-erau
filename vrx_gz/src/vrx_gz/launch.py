@@ -17,7 +17,10 @@ from ament_index_python.packages import get_package_share_directory
 from launch.actions import GroupAction
 from launch.actions import IncludeLaunchDescription
 from launch.actions import RegisterEventHandler
+from launch.actions import EmitEvent, LogInfo
+from launch.event_handlers import OnProcessIO, OnShutdown
 from launch.event_handlers import OnProcessExit
+from launch.events import Shutdown
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
@@ -30,7 +33,7 @@ from launch_ros.actions import PushRosNamespace
 
 import vrx_gz.bridges
 
-import os
+import os, re
 
 GYMKHANA_WORLDS = [
   'gymkhana_task'
@@ -127,6 +130,37 @@ FOLLOWPATH_WORLDS = [
   'follow_path5'
 ]
 
+# Matches gz-sim's own "[Err]" console tag, ROS 2 launch's "[ERROR]" process
+# lines, and sdformat's "Error Code N" messages. Extend this pattern if you
+# spot other error formats you want to catch.
+_ERROR_PATTERN = re.compile(r'\[Err\]|\[ERROR\]|Error Code \d+')
+
+# Collected here as errors are detected, then reprinted once everything has
+# shut down so you don't have to scroll back through cleanup noise to find it.
+_detected_errors = []
+
+def _shutdown_on_error(event):
+    text = event.text.decode(errors='replace') if isinstance(event.text, (bytes, bytearray)) else event.text
+    if _ERROR_PATTERN.search(text):
+        _detected_errors.append((event.process_name, text.rstrip()))
+        return [
+            EmitEvent(event=Shutdown(
+                reason=f'Error detected in output of {event.process_name}'
+            )),
+        ]
+    return None
+
+def _print_collected_errors(event, context=None):
+    if not _detected_errors:
+        return None
+    lines = ['', '=' * 70, 'ERRORS DETECTED DURING THIS RUN:', '=' * 70]
+    for process_name, text in _detected_errors:
+        lines.append(f'--- from [{process_name}] ---')
+        lines.append(text)
+    lines.append('=' * 70)
+    return [LogInfo(msg='\n'.join(lines))]
+
+
 def simulation(world_name, headless=False, paused=False, extra_gz_args=''):
     gz_args = ['-v 4']
     if not paused:
@@ -164,8 +198,25 @@ def simulation(world_name, headless=False, paused=False, extra_gz_args=''):
             ]
         )
     )
+    # Watch stdout/stderr of every process in the whole launch tree
+    # (no target_action == global scope) and shut everything down the
+    # moment an error line shows up, instead of letting it scroll by.
+    error_shutdown_handler = RegisterEventHandler(
+        OnProcessIO(
+            on_stdout=_shutdown_on_error,
+            on_stderr=_shutdown_on_error,
+        )
+    )
 
-    return [gz_sim, monitor_sim_proc, sim_exit_event_handler]
+    # Fires once the whole launch system is shutting down (after all
+    # processes have been signaled to exit). Reprints anything that was
+    # buffered above as the very last thing on screen, so it lands below
+    # all the cleanup/exit noise instead of getting scrolled past.
+    error_summary_handler = RegisterEventHandler(
+        OnShutdown(on_shutdown=_print_collected_errors)
+    )
+
+    return [gz_sim, monitor_sim_proc, sim_exit_event_handler, error_shutdown_handler, error_summary_handler]
 
 
 def competition_bridges(world_name, competition_mode=False):
@@ -285,17 +336,17 @@ def spawn(sim_mode, world_name, models, robot=None):
                 output='screen',
             ))
 
-            # robot_state_publisher (tf for wamv)
-            model_dir = os.path.join(get_package_share_directory('vrx_gazebo'), 'models/wamv/tmp')
+            # robot_state_publisher (tf for vehicle)
+            model_dir = os.path.join(get_package_share_directory('vrx_gazebo'), f'models/{model.model_name}/tmp')
             urdf_file = os.path.join(model_dir, 'model.urdf')
             with open(urdf_file, 'r') as infp:
                 robot_desc = infp.read()
-            params = {'use_sim_time': use_sim_time, 'frame_prefix': 'wamv/', 'robot_description': robot_desc}
+            params = {'use_sim_time': use_sim_time, 'frame_prefix': f'{model.model_name}/', 'robot_description': robot_desc}
             nodes.append(Node(package='robot_state_publisher',
                                   executable='robot_state_publisher',
                                   output='both',
                                   parameters=[params],
-                                  remappings=[('/joint_states', '/wamv/joint_states')]))
+                                  remappings=[('/joint_states', f'/{model.model_name}/joint_states')]))
 
             group_action = GroupAction([
                 PushRosNamespace(model.model_name),
