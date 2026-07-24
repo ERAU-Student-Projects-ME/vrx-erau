@@ -260,8 +260,12 @@ class Model:
     def generate(self):
         command = None
         if not self.urdf:
-            self.urdf = os.path.join(get_package_share_directory('wamv_gazebo'),
-                                     'urdf', 'wamv_gazebo.urdf.xacro')
+            if self.model_type in USVS:
+                self.urdf = os.path.join(get_package_share_directory('gazebo_models'),
+                                        'models', 'mini_minion', 'model.sdf')
+            elif self.model_type in UAVS:
+                self.urdf = os.path.join(get_package_share_directory('gazebo_models'),
+                                                        'models', 'noodle', 'model.sdf')
 
         # if '.sdf' not in self.urdf:
         command = self.xacro_cmd()

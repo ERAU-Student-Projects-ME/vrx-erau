@@ -46,7 +46,7 @@ class LightBuoyPlugin::Implementation
   /// \def Pattern_t
   /// \brief The current pattern to display, pattern[3] and pattern[4]
   /// are always OFF.
-  private: using Pattern_t = std::array<std::string, 5>;
+  private: using Pattern_t = std::array<std::string, 4>;
 
   /// \brief Creates a gz::msgs::Color message from 4 doubles.
   /// \param[in] _r Red.
@@ -134,6 +134,7 @@ bool LightBuoyPlugin::Implementation::ParseSDF(sdf::ElementPtr _sdf)
   uint8_t i = 0u;
   for (auto colorIndex : {"color_1", "color_2", "color_3"})
   {
+    std::cout << "Checking index: " << colorIndex << std::endl;
     if (!_sdf->HasElement(colorIndex))
     {
       gzerr << "Missing <" << colorIndex << ">" << std::endl;
@@ -156,7 +157,6 @@ bool LightBuoyPlugin::Implementation::ParseSDF(sdf::ElementPtr _sdf)
 
   // The last two colors of the pattern are always black.
   this->pattern[3] = "off";
-  this->pattern[4] = "off";
 
   // Required: visuals.
   if (!_sdf->HasElement("visuals"))
@@ -269,7 +269,7 @@ void LightBuoyPlugin::Implementation::Update()
   this->nextUpdateTime += std::chrono::duration<double>(1.0);
 
   // Start over if at end of pattern
-  if (this->state > 4u)
+  if (this->state > 3u)
     this->state = 0u;
 
   auto color = this->kColors[this->pattern[this->state]];

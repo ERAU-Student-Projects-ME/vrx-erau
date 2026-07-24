@@ -36,13 +36,13 @@
 
 #include <sdf/sdf.hh>
 
-#include "LightBuoyPlugin.hh"
+#include "LightPlugin.hh"
 
 using namespace gz;
 using namespace vrx;
 
-/// \brief Private LightBuoyPlugin data class.
-class LightBuoyPlugin::Implementation
+/// \brief Private LightPlugin data class.
+class LightPlugin::Implementation
 {
   /// \def Pattern_t
   /// \brief The current pattern to display, pattern[3] and pattern[4]
@@ -111,7 +111,7 @@ class LightBuoyPlugin::Implementation
 
 // Static initialization.
 std::map<std::string, gz::msgs::Color>
-  LightBuoyPlugin::Implementation::kColors =
+  LightPlugin::Implementation::kColors =
   {
     {"red",    CreateColor(1.0, 0.0, 0.0, 1.0)},
     {"green",  CreateColor(0.0, 1.0, 0.0, 1.0)},
@@ -121,7 +121,7 @@ std::map<std::string, gz::msgs::Color>
   };
 
 //////////////////////////////////////////////////
-msgs::Color LightBuoyPlugin::Implementation::CreateColor(const double _r,
+msgs::Color LightPlugin::Implementation::CreateColor(const double _r,
   const double _g, const double _b, const double _a)
 {
   static msgs::Color color;
@@ -133,7 +133,7 @@ msgs::Color LightBuoyPlugin::Implementation::CreateColor(const double _r,
 }
 
 /////////////////////////////////////////////////
-bool LightBuoyPlugin::Implementation::ParseSDF(sdf::ElementPtr _sdf)
+bool LightPlugin::Implementation::ParseSDF(sdf::ElementPtr _sdf)
 {
   // Required: Sequence of colors.
 
@@ -201,7 +201,7 @@ bool LightBuoyPlugin::Implementation::ParseSDF(sdf::ElementPtr _sdf)
 }
 
 //////////////////////////////////////////////////
-void LightBuoyPlugin::Implementation::Update()
+void LightPlugin::Implementation::Update()
 {
   if (!this->scene)
     this->scene = rendering::sceneFromFirstRenderEngine();
@@ -315,13 +315,13 @@ void LightBuoyPlugin::Implementation::Update()
 }
 
 /////////////////////////////////////////////////
-LightBuoyPlugin::LightBuoyPlugin()
+LightPlugin::LightPlugin()
   : dataPtr(utils::MakeUniqueImpl<Implementation>())
 {
 }
 
 //////////////////////////////////////////////////
-void LightBuoyPlugin::Configure(const sim::Entity &_entity,
+void LightPlugin::Configure(const sim::Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     sim::EntityComponentManager &_ecm,
     sim::EventManager &_eventMgr)
@@ -340,21 +340,21 @@ void LightBuoyPlugin::Configure(const sim::Entity &_entity,
   // rendering operations in that thread.
   this->dataPtr->connection =
     _eventMgr.Connect<sim::events::SceneUpdate>(
-      std::bind(&LightBuoyPlugin::Implementation::Update, this->dataPtr.get()));
+      std::bind(&LightPlugin::Implementation::Update, this->dataPtr.get()));
 }
 
 //////////////////////////////////////////////////
-void LightBuoyPlugin::PreUpdate(const sim::UpdateInfo &_info,
+void LightPlugin::PreUpdate(const sim::UpdateInfo &_info,
   sim::EntityComponentManager &_ecm)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->currentTime = _info.simTime;
 }
 
-GZ_ADD_PLUGIN(LightBuoyPlugin,
+GZ_ADD_PLUGIN(LightPlugin,
               sim::System,
-              LightBuoyPlugin::ISystemConfigure,
-              LightBuoyPlugin::ISystemPreUpdate)
+              LightPlugin::ISystemConfigure,
+              LightPlugin::ISystemPreUpdate)
 
-GZ_ADD_PLUGIN_ALIAS(vrx::LightBuoyPlugin,
+GZ_ADD_PLUGIN_ALIAS(vrx::LightPlugin,
                     "vrx::LightPlugin")
