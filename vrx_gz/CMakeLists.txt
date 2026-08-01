@@ -145,6 +145,7 @@ install(
 list(APPEND VRX_GZ_PLUGINS
   AcousticPingerPlugin
   BallShooterPlugin
+  BeaconPlugin
   LightBuoyPlugin
   LightPlugin
   NavigationScoringPlugin

@@ -35,18 +35,18 @@
 
 #include <sdf/sdf.hh>
 
-#include "LightBuoyPlugin.hh"
+#include "BeaconPlugin.hh"
 
 using namespace gz;
 using namespace vrx;
 
-/// \brief Private LightBuoyPlugin data class.
-class LightBuoyPlugin::Implementation
+/// \brief Private BeaconPlugin data class.
+class BeaconPlugin::Implementation
 {
   /// \def Pattern_t
   /// \brief The current pattern to display, pattern[3] and pattern[4]
   /// are always OFF.
-  private: using Pattern_t = std::array<std::string, 5>;
+  private: using Pattern_t = std::array<std::string, 4>;
 
   /// \brief Creates a gz::msgs::Color message from 4 doubles.
   /// \param[in] _r Red.
@@ -106,7 +106,7 @@ class LightBuoyPlugin::Implementation
 
 // Static initialization.
 std::map<std::string, gz::msgs::Color>
-  LightBuoyPlugin::Implementation::kColors =
+  BeaconPlugin::Implementation::kColors =
   {
     {"red",    CreateColor(1.0, 0.0, 0.0, 1.0)},
     {"green",  CreateColor(0.0, 1.0, 0.0, 1.0)},
@@ -116,7 +116,7 @@ std::map<std::string, gz::msgs::Color>
   };
 
 //////////////////////////////////////////////////
-msgs::Color LightBuoyPlugin::Implementation::CreateColor(const double _r,
+msgs::Color BeaconPlugin::Implementation::CreateColor(const double _r,
   const double _g, const double _b, const double _a)
 {
   static msgs::Color color;
@@ -128,12 +128,13 @@ msgs::Color LightBuoyPlugin::Implementation::CreateColor(const double _r,
 }
 
 /////////////////////////////////////////////////
-bool LightBuoyPlugin::Implementation::ParseSDF(sdf::ElementPtr _sdf)
+bool BeaconPlugin::Implementation::ParseSDF(sdf::ElementPtr _sdf)
 {
   // Required: Sequence of colors.
   uint8_t i = 0u;
   for (auto colorIndex : {"color_1", "color_2", "color_3"})
   {
+    std::cout << "Checking index: " << colorIndex << std::endl;
     if (!_sdf->HasElement(colorIndex))
     {
       gzerr << "Missing <" << colorIndex << ">" << std::endl;
@@ -156,7 +157,6 @@ bool LightBuoyPlugin::Implementation::ParseSDF(sdf::ElementPtr _sdf)
 
   // The last two colors of the pattern are always black.
   this->pattern[3] = "off";
-  this->pattern[4] = "off";
 
   // Required: visuals.
   if (!_sdf->HasElement("visuals"))
@@ -184,7 +184,7 @@ bool LightBuoyPlugin::Implementation::ParseSDF(sdf::ElementPtr _sdf)
 }
 
 //////////////////////////////////////////////////
-void LightBuoyPlugin::Implementation::Update()
+void BeaconPlugin::Implementation::Update()
 {
   if (!this->scene)
     this->scene = rendering::sceneFromFirstRenderEngine();
@@ -269,7 +269,7 @@ void LightBuoyPlugin::Implementation::Update()
   this->nextUpdateTime += std::chrono::duration<double>(1.0);
 
   // Start over if at end of pattern
-  if (this->state > 4u)
+  if (this->state > 3u)
     this->state = 0u;
 
   auto color = this->kColors[this->pattern[this->state]];
@@ -298,13 +298,13 @@ void LightBuoyPlugin::Implementation::Update()
 }
 
 /////////////////////////////////////////////////
-LightBuoyPlugin::LightBuoyPlugin()
+BeaconPlugin::BeaconPlugin()
   : dataPtr(utils::MakeUniqueImpl<Implementation>())
 {
 }
 
 //////////////////////////////////////////////////
-void LightBuoyPlugin::Configure(const sim::Entity &_entity,
+void BeaconPlugin::Configure(const sim::Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     sim::EntityComponentManager &_ecm,
     sim::EventManager &_eventMgr)
@@ -323,21 +323,21 @@ void LightBuoyPlugin::Configure(const sim::Entity &_entity,
   // rendering operations in that thread.
   this->dataPtr->connection =
     _eventMgr.Connect<sim::events::SceneUpdate>(
-      std::bind(&LightBuoyPlugin::Implementation::Update, this->dataPtr.get()));
+      std::bind(&BeaconPlugin::Implementation::Update, this->dataPtr.get()));
 }
 
 //////////////////////////////////////////////////
-void LightBuoyPlugin::PreUpdate(const sim::UpdateInfo &_info,
+void BeaconPlugin::PreUpdate(const sim::UpdateInfo &_info,
   sim::EntityComponentManager &_ecm)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->currentTime = _info.simTime;
 }
 
-GZ_ADD_PLUGIN(LightBuoyPlugin,
+GZ_ADD_PLUGIN(BeaconPlugin,
               sim::System,
-              LightBuoyPlugin::ISystemConfigure,
-              LightBuoyPlugin::ISystemPreUpdate)
+              BeaconPlugin::ISystemConfigure,
+              BeaconPlugin::ISystemPreUpdate)
 
-GZ_ADD_PLUGIN_ALIAS(vrx::LightBuoyPlugin,
-                    "vrx::LightBuoyPlugin")
+GZ_ADD_PLUGIN_ALIAS(vrx::BeaconPlugin,
+                    "vrx::BeaconPlugin")
