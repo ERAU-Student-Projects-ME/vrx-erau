@@ -134,7 +134,6 @@ bool BeaconPlugin::Implementation::ParseSDF(sdf::ElementPtr _sdf)
   uint8_t i = 0u;
   for (auto colorIndex : {"color_1", "color_2", "color_3"})
   {
-    std::cout << "Checking index: " << colorIndex << std::endl;
     if (!_sdf->HasElement(colorIndex))
     {
       gzerr << "Missing <" << colorIndex << ">" << std::endl;
@@ -155,8 +154,16 @@ bool BeaconPlugin::Implementation::ParseSDF(sdf::ElementPtr _sdf)
     this->pattern[i++] = color;
   }
 
-  // The last two colors of the pattern are always black.
-  this->pattern[3] = "off";
+  // The last colors of the pattern
+  bool all_same = std::all_of(pattern.begin() + 1, pattern.end() - 1,
+                             [first = pattern[0]](const std::string& s) { return s == first; });
+    
+  if (all_same) {
+     this->pattern[3] = pattern[0];
+  }
+  else {
+     this->pattern[3] = "off";
+  }
 
   // Required: visuals.
   if (!_sdf->HasElement("visuals"))

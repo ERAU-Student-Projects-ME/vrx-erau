@@ -281,6 +281,7 @@ def competition_bridges(world_name, competition_mode=False):
         executable='parameter_bridge',
         output='screen',
         arguments=[bridge.argument() for bridge in bridges],
+        parameters = [{'use_sim_time': True}],
         remappings=[bridge.remapping() for bridge in bridges],
     ))
     return nodes
@@ -325,6 +326,7 @@ def spawn(sim_mode, world_name, models, robot=None):
                 package='ros_gz_bridge',
                 executable='parameter_bridge',
                 output='screen',
+                parameters = [{'use_sim_time': True}],
                 arguments=[bridge.argument() for bridge in bridges],
                 remappings=[bridge.remapping() for bridge in bridges],
             ))
@@ -333,6 +335,7 @@ def spawn(sim_mode, world_name, models, robot=None):
             nodes.append(Node(
                 package='vrx_ros',
                 executable='pose_tf_broadcaster',
+                parameters = [{'use_sim_time': True}],
                 output='screen',
             ))
 

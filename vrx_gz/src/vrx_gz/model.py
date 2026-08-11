@@ -119,6 +119,7 @@ class Model:
                     package='vrx_ros',
                     executable='optical_frame_publisher',
                     arguments=['1'],
+                    parameters = [{'use_sim_time': True}],
                     remappings=[('input/image', f'{ros_sensor_prefix}/image_raw'),
                                 ('output/image', f'{ros_sensor_prefix}/optical/image_raw'),
                                 ('input/camera_info', f'{ros_sensor_prefix}/camera_info'),
@@ -130,6 +131,7 @@ class Model:
                     package='vrx_ros',
                     executable='optical_frame_publisher',
                     arguments=['1'],
+                    parameters = [{'use_sim_time': True}],
                     remappings=[('input/image', f'{ros_sensor_prefix}/image_raw'),
                                 ('output/image', f'{ros_sensor_prefix}/optical/image_raw'),
                                 ('input/camera_info', f'{ros_sensor_prefix}/camera_info'),
@@ -138,6 +140,7 @@ class Model:
                 nodes.append(Node(
                     package='vrx_ros',
                     executable='optical_frame_publisher',
+                    parameters = [{'use_sim_time': True}],
                     arguments=['1'],
                     remappings=[('input/image', f'{ros_sensor_prefix}/depth'),
                                 ('output/image', f'{ros_sensor_prefix}/optical/depth')]))
