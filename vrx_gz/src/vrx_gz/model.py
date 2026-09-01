@@ -265,7 +265,7 @@ class Model:
         if not self.urdf:
             if self.model_type in USVS:
                 self.urdf = os.path.join(get_package_share_directory('gazebo_models'),
-                                        'models', 'mini_minion', 'model.sdf')
+                                        'models', 'junior', 'model.sdf')
             elif self.model_type in UAVS:
                 self.urdf = os.path.join(get_package_share_directory('gazebo_models'),
                                                         'models', 'noodle', 'model.sdf')
